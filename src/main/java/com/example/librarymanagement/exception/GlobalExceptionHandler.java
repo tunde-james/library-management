@@ -38,4 +38,40 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(
+        UserNotFoundException ex) {
+
+        log.warn("User not found {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "User not found");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(BookNotAvailableException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotAvailableException(
+        BookNotAvailableException ex) {
+
+        log.warn("Book is not available {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Book is not available");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(LoanNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleLoanNotFoundException(
+        Exception ex) {
+
+        log.warn("Loan not found with {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Loan not found");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
 }

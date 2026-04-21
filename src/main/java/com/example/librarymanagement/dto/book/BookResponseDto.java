@@ -1,4 +1,4 @@
-package com.example.librarymanagement.dto;
+package com.example.librarymanagement.dto.book;
 
 import lombok.Data;
 

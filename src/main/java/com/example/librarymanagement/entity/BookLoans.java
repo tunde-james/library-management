@@ -23,7 +23,7 @@ public class BookLoans {
     private Long id;
 
     @Column(name = "issue_date", nullable = false)
-    private LocalDate issuDate;
+    private LocalDate issueDate;
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;

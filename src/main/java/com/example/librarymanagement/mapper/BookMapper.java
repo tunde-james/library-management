@@ -2,8 +2,8 @@ package com.example.librarymanagement.mapper;
 
 import org.springframework.lang.NonNull;
 
-import com.example.librarymanagement.dto.BookRequestDto;
-import com.example.librarymanagement.dto.BookResponseDto;
+import com.example.librarymanagement.dto.book.BookRequestDto;
+import com.example.librarymanagement.dto.book.BookResponseDto;
 import com.example.librarymanagement.entity.Book;
 
 public class BookMapper {
