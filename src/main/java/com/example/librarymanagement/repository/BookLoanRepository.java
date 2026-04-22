@@ -14,6 +14,6 @@ import com.example.librarymanagement.entity.BookLoans;
 public interface BookLoanRepository extends JpaRepository<BookLoans, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select bl from BookLoans bl where bl.id = : id")
+    @Query("select bl from BookLoans bl where bl.id = :id")
     Optional<BookLoans> findByIdForUpdate(@Param("id") Long id);
 }
