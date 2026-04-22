@@ -6,10 +6,12 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log =
@@ -35,6 +37,42 @@ public class GlobalExceptionHandler {
 
         Map<String, String> errors = new HashMap<>();
         errors.put("message", "Book not found");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(
+        UserNotFoundException ex) {
+
+        log.warn("User not found {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "User not found");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(BookNotAvailableException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotAvailableException(
+        BookNotAvailableException ex) {
+
+        log.warn("Book is not available {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Book is not available");
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(LoanNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleLoanNotFoundException(
+        Exception ex) {
+
+        log.warn("Loan not found with {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Loan not found");
 
         return ResponseEntity.badRequest().body(errors);
     }

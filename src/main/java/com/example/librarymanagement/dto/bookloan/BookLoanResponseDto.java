@@ -1,4 +1,4 @@
-package com.example.librarymanagement.dto;
+package com.example.librarymanagement.dto.bookloan;
 
 import java.time.LocalDate;
 

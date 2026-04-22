@@ -3,9 +3,10 @@ package com.example.librarymanagement.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.example.librarymanagement.dto.BookRequestDto;
-import com.example.librarymanagement.dto.BookResponseDto;
+import com.example.librarymanagement.dto.book.BookRequestDto;
+import com.example.librarymanagement.dto.book.BookResponseDto;
 import com.example.librarymanagement.entity.Book;
 import com.example.librarymanagement.exception.BookAlreadyExistsException;
 import com.example.librarymanagement.exception.BookNotFoundException;
@@ -44,6 +45,7 @@ public class BookService {
         return BookMapper.toDto(book);
     }
 
+    @Transactional
     public BookResponseDto addBook(BookRequestDto bookRequestDto) {
 
         if (bookRepository.existsByTitle(bookRequestDto.getTitle())) {
@@ -58,6 +60,7 @@ public class BookService {
         return BookMapper.toDto((bookAdded));
     }
 
+    @Transactional
     public BookResponseDto updateBook(Long id, BookRequestDto bookRequestDto) {
 
         if (id == null) {

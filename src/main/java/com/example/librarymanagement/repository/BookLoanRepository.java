@@ -9,15 +9,11 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
-import com.example.librarymanagement.entity.Book;
+import com.example.librarymanagement.entity.BookLoans;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
-
-    boolean existsByTitle(String title);
-
-    boolean existsByTitleAndIdNot(String title, Long id);
+public interface BookLoanRepository extends JpaRepository<BookLoans, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select b from Book b where b.id = :id")
-    Optional<Book> findByIdForUpdate(@Param("id") Long id);
+    @Query("select bl from BookLoans bl where bl.id = :id")
+    Optional<BookLoans> findByIdForUpdate(@Param("id") Long id);
 }
