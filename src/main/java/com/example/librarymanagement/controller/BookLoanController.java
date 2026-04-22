@@ -1,10 +1,10 @@
 package com.example.librarymanagement.controller;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +19,7 @@ import com.example.librarymanagement.dto.bookloan.BookReturnRequestDto;
 import com.example.librarymanagement.service.BookLoanService;
 
 @RestController
-@RequestMapping("/api/book-loans")
+@RequestMapping("/api/v1/book-loans")
 public class BookLoanController {
 
     private final BookLoanService bookLoanService;
@@ -32,18 +32,19 @@ public class BookLoanController {
     public ResponseEntity<List<BookLoanResponseDto>> loanBook(
         @Valid @RequestBody BookLoanRequestDto bookLoanRequestDto) {
 
-        List<BookLoanResponseDto> loans = bookLoanService
-            .issueBooks(Objects.requireNonNull(bookLoanRequestDto));
+        List<BookLoanResponseDto> loans =
+            bookLoanService.issueBooks(bookLoanRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(loans);
     }
 
     @PutMapping("/return")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookLoanResponseDto>> returnBooks(
         @Valid @RequestBody BookReturnRequestDto bookReturnRequestDto) {
 
-        List<BookLoanResponseDto> returnedLoans = bookLoanService
-            .returnBooks(Objects.requireNonNull(bookReturnRequestDto));
+        List<BookLoanResponseDto> returnedLoans =
+            bookLoanService.returnBooks(bookReturnRequestDto);
 
         return ResponseEntity.ok(returnedLoans);
     }

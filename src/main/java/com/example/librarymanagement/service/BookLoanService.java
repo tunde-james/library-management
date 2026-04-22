@@ -46,18 +46,20 @@ public class BookLoanService {
         String username =
             SecurityContextHolder.getContext().getAuthentication().getName();
 
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UserNotFoundException(
-                "User not found: " + username));
+        User user = userRepository.findByUsername(username).orElseThrow(
+            () -> new UserNotFoundException("User not found: " + username));
+
+        List<Long> sortedBookIds =
+            request.getBookIds().stream().sorted().toList();
 
         List<BookLoanResponseDto> issuedLoans = new ArrayList<>();
 
-        for (Long bookId : request.getBookIds()) {
+        for (Long bookId : sortedBookIds) {
 
             Long validBookId =
                 Objects.requireNonNull(bookId, "Book ID cannot be null");
 
-            Book book = bookRepository.findById(validBookId)
+            Book book = bookRepository.findByIdForUpdate(validBookId)
                 .orElseThrow(() -> new BookNotFoundException(
                     "Book not found with ID: " + bookId));
 
@@ -87,14 +89,17 @@ public class BookLoanService {
     public List<BookLoanResponseDto> returnBooks(
         @NonNull BookReturnRequestDto request) {
 
+        List<Long> sortedLoanIds =
+            request.getLoanIds().stream().sorted().toList();
+
         List<BookLoanResponseDto> returnedBooks = new ArrayList<>();
 
-        for (Long loanId : request.getLoanIds()) {
+        for (Long loanId : sortedLoanIds) {
 
             Long validLoanId =
                 Objects.requireNonNull(loanId, "Loan ID cannot be null");
 
-            BookLoans loan = bookLoanRepository.findById(validLoanId)
+            BookLoans loan = bookLoanRepository.findByIdForUpdate(validLoanId)
                 .orElseThrow(() -> new LoanNotFoundException(
                     "Loan not found with ID: " + validLoanId));
 
