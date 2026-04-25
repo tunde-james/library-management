@@ -2,6 +2,7 @@ package com.example.librarymanagement.securityconfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -42,6 +43,10 @@ public class SecurityConfig {
                 .permitAll()
                 .requestMatchers("/api/v1/admin/**")
                 .hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/books")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/books/**")
+                .permitAll()
                 .anyRequest()
                 .authenticated())
             .sessionManagement(session -> session

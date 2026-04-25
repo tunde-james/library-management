@@ -2,6 +2,7 @@ package com.example.librarymanagement.service;
 
 import java.util.Set;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -86,7 +87,7 @@ public class AuthService {
     public void logout(String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Invalid authorization header");
+            throw new BadCredentialsException("Invalid authorization header");
         }
 
         String token = authHeader.substring(7);
@@ -121,7 +122,24 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(Set.of(role));
 
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new UsernameAlreadyExistsException(
+                    "A user with this username already exists: "
+                        + request.getUsername());
+            }
+
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new EmailAlreadyExistsException(
+                    "A user with this email already exists: "
+                        + request.getEmail());
+            }
+
+            throw new DataIntegrityViolationException(
+                "Registration failed due to a conflict: " + ex.getMessage());
+        }
     }
 
 }
