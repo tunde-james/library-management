@@ -29,6 +29,7 @@ public class BookLoanController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookLoanResponseDto>> loanBook(
         @Valid @RequestBody BookLoanRequestDto bookLoanRequestDto) {
 

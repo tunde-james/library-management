@@ -58,7 +58,7 @@ public class BookService {
             bookRepository.save(BookMapper.toEntity(bookRequestDto));
 
         return BookMapper.toDto((bookAdded));
-    }
+    }    
 
     @Transactional
     public BookResponseDto updateBook(Long id, BookRequestDto bookRequestDto) {
