@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class BookLoanRequestDto {
 
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
     @NotEmpty(message = "At least one book ID is required")
     private List<Long> bookIds;
 

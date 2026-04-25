@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,11 +42,13 @@ public class BookLoanService {
     public List<BookLoanResponseDto> issueBooks(
         @NonNull BookLoanRequestDto request) {
 
-        String username =
-            SecurityContextHolder.getContext().getAuthentication().getName();
+        Long validUserId = Objects
+            .requireNonNull(request.getUserId(), "User ID cannot be null");
 
-        User user = userRepository.findByUsername(username).orElseThrow(
-            () -> new UserNotFoundException("User not found: " + username));
+        User user = userRepository
+            .findById(validUserId)
+            .orElseThrow(() -> new UserNotFoundException(
+                "User not found with ID: " + validUserId));
 
         List<Long> sortedBookIds =
             request.getBookIds().stream().sorted().toList();
@@ -59,7 +60,8 @@ public class BookLoanService {
             Long validBookId =
                 Objects.requireNonNull(bookId, "Book ID cannot be null");
 
-            Book book = bookRepository.findByIdForUpdate(validBookId)
+            Book book = bookRepository
+                .findByIdForUpdate(validBookId)
                 .orElseThrow(() -> new BookNotFoundException(
                     "Book not found with ID: " + bookId));
 
@@ -99,7 +101,8 @@ public class BookLoanService {
             Long validLoanId =
                 Objects.requireNonNull(loanId, "Loan ID cannot be null");
 
-            BookLoans loan = bookLoanRepository.findByIdForUpdate(validLoanId)
+            BookLoans loan = bookLoanRepository
+                .findByIdForUpdate(validLoanId)
                 .orElseThrow(() -> new LoanNotFoundException(
                     "Loan not found with ID: " + validLoanId));
 
