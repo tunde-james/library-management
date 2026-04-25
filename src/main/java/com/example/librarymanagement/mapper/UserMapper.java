@@ -2,6 +2,7 @@ package com.example.librarymanagement.mapper;
 
 import org.springframework.lang.NonNull;
 
+import com.example.librarymanagement.dto.user.AdminResponseDto;
 import com.example.librarymanagement.dto.user.LoginResponseDto;
 import com.example.librarymanagement.dto.user.RegisterRequestDto;
 import com.example.librarymanagement.dto.user.RegisterResponseDto;
@@ -38,6 +39,21 @@ public class UserMapper {
         return RegisterResponseDto
             .builder()
             .token(token)
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .roles(user.getRoles())
+            .build();
+    }
+
+    public static @NonNull AdminResponseDto toAdminResponse(User user) {
+
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
+        return AdminResponseDto
+            .builder()
+            .id(user.getId())
             .username(user.getUsername())
             .email(user.getEmail())
             .roles(user.getRoles())

@@ -38,9 +38,9 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**")
+                .requestMatchers("/api/v1/auth/**")
                 .permitAll()
-                .requestMatchers("/admin/**")
+                .requestMatchers("/api/v1/admin/**")
                 .hasRole("ADMIN")
                 .anyRequest()
                 .authenticated())
@@ -53,18 +53,8 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // @Bean
-    // public UserDetailsService userDetailsService() {
-
-    // return new CustomUserDetailsService();
-    // }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
-
-        // DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        // provider.setUserDetailsService(userDetailsService);
-        // provider.setPasswordEncoder(passwordEncoder());
 
         DaoAuthenticationProvider provider =
             new DaoAuthenticationProvider(userDetailsService);

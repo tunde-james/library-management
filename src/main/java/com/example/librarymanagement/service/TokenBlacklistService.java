@@ -1,22 +1,32 @@
 package com.example.librarymanagement.service;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.springframework.stereotype.Service;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import com.example.librarymanagement.config.JwtProperties;
 
 @Service
 public class TokenBlacklistService {
 
-    private final Set<String> blacklistedTokens = new HashSet<>();
+    private final Cache<String, Boolean> blacklistedTokens;
 
-    public void blacklistTokens(String token) {
+    public TokenBlacklistService(JwtProperties jwtProperties) {
+        this.blacklistedTokens = Caffeine
+            .newBuilder()
+            .expireAfterWrite(jwtProperties.getExpiration())
+            .maximumSize(100_000)
+            .build();
+    }
 
-        blacklistedTokens.add(token);
+    public void blacklistToken(String token) {
+
+        blacklistedTokens.put(token, Boolean.TRUE);
     }
 
     public boolean isBlacklisted(String token) {
 
-        return blacklistedTokens.contains(token);
+        return blacklistedTokens.getIfPresent(token) != null;
     }
 }

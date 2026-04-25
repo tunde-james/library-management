@@ -2,6 +2,7 @@ package com.example.librarymanagement.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -17,7 +18,7 @@ import com.example.librarymanagement.dto.user.RegisterResponseDto;
 import com.example.librarymanagement.service.AuthService;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -51,9 +52,16 @@ public class AuthController {
     public ResponseEntity<String> logout(
         @RequestHeader("Authorization") String authHeader) {
 
-        authService.logout(authHeader);
+        try {
+            authService.logout(authHeader);
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ex.getMessage());
+        }
 
-        return ResponseEntity.ok("Logged out successfully");
+
     }
 
 }
