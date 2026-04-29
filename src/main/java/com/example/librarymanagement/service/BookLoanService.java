@@ -31,43 +31,34 @@ public class BookLoanService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
-    public BookLoanService(BookLoanRepository bookLoanRepository,
-        BookRepository bookRepository, UserRepository userRepository) {
+    public BookLoanService(BookLoanRepository bookLoanRepository, BookRepository bookRepository,
+            UserRepository userRepository) {
         this.bookLoanRepository = bookLoanRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
     }
 
     @Transactional
-    public List<BookLoanResponseDto> issueBooks(
-        @NonNull BookLoanRequestDto request) {
+    public List<BookLoanResponseDto> issueBooks(@NonNull BookLoanRequestDto request) {
 
-        Long validUserId = Objects
-            .requireNonNull(request.getUserId(), "User ID cannot be null");
+        Long validUserId = Objects.requireNonNull(request.getUserId(), "User ID cannot be null");
 
-        User user = userRepository
-            .findById(validUserId)
-            .orElseThrow(() -> new UserNotFoundException(
-                "User not found with ID: " + validUserId));
+        User user = userRepository.findById(validUserId).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + validUserId));
 
-        List<Long> sortedBookIds =
-            request.getBookIds().stream().sorted().toList();
+        List<Long> sortedBookIds = request.getBookIds().stream().sorted().toList();
 
         List<BookLoanResponseDto> issuedLoans = new ArrayList<>();
 
         for (Long bookId : sortedBookIds) {
 
-            Long validBookId =
-                Objects.requireNonNull(bookId, "Book ID cannot be null");
+            Long validBookId = Objects.requireNonNull(bookId, "Book ID cannot be null");
 
-            Book book = bookRepository
-                .findByIdForUpdate(validBookId)
-                .orElseThrow(() -> new BookNotFoundException(
-                    "Book not found with ID: " + bookId));
+            Book book = bookRepository.findByIdForUpdate(validBookId).orElseThrow(
+                    () -> new BookNotFoundException("Book not found with ID: " + bookId));
 
             if (!book.getIsAvailable() || book.getQuantity() < 1) {
-                throw new BookNotAvailableException(
-                    "Book is not available: " + book.getTitle());
+                throw new BookNotAvailableException("Book is not available: " + book.getTitle());
             }
 
             BookLoans loan = BookLoanMapper.toEntity(request, user, book);
@@ -88,27 +79,22 @@ public class BookLoanService {
     }
 
     @Transactional
-    public List<BookLoanResponseDto> returnBooks(
-        @NonNull BookReturnRequestDto request) {
+    public List<BookLoanResponseDto> returnBooks(@NonNull BookReturnRequestDto request) {
 
-        List<Long> sortedLoanIds =
-            request.getLoanIds().stream().sorted().toList();
+        List<Long> sortedLoanIds = request.getLoanIds().stream().sorted().toList();
 
         List<BookLoanResponseDto> returnedBooks = new ArrayList<>();
 
         for (Long loanId : sortedLoanIds) {
 
-            Long validLoanId =
-                Objects.requireNonNull(loanId, "Loan ID cannot be null");
+            Long validLoanId = Objects.requireNonNull(loanId, "Loan ID cannot be null");
 
-            BookLoans loan = bookLoanRepository
-                .findByIdForUpdate(validLoanId)
-                .orElseThrow(() -> new LoanNotFoundException(
-                    "Loan not found with ID: " + validLoanId));
+            BookLoans loan = bookLoanRepository.findByIdForUpdate(validLoanId).orElseThrow(
+                    () -> new LoanNotFoundException("Loan not found with ID: " + validLoanId));
 
             if (Boolean.TRUE.equals(loan.getIsReturned())) {
                 throw new IllegalArgumentException(
-                    "Book already returned for loan ID: " + validLoanId);
+                        "Book already returned for loan ID: " + validLoanId);
             }
 
             loan.setIsReturned(true);

@@ -16,10 +16,12 @@ import com.example.librarymanagement.repository.BookRepository;
 @Service
 public class BookService {
 
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
     }
 
     public List<BookResponseDto> getAllBooks() {
@@ -27,7 +29,7 @@ public class BookService {
         List<Book> books = bookRepository.findAll();
 
         List<BookResponseDto> bookResponseDtos =
-            books.stream().map(book -> BookMapper.toDto(book)).toList();
+                books.stream().map(book -> bookMapper.toDto(book)).toList();
 
         return bookResponseDtos;
     }
@@ -38,11 +40,11 @@ public class BookService {
             throw new IllegalArgumentException("Book ID cannot be null");
         }
 
-        Book book = bookRepository.findById(id).orElseThrow(
-            () -> new BookNotFoundException("Book not found with ID: " + id));
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
 
 
-        return BookMapper.toDto(book);
+        return bookMapper.toDto(book);
     }
 
     @Transactional
@@ -50,15 +52,13 @@ public class BookService {
 
         if (bookRepository.existsByTitle(bookRequestDto.getTitle())) {
             throw new BookAlreadyExistsException(
-                "A book with this title already exists: "
-                    + bookRequestDto.getTitle());
+                    "A book with this title already exists: " + bookRequestDto.getTitle());
         }
 
-        Book bookAdded =
-            bookRepository.save(BookMapper.toEntity(bookRequestDto));
+        Book bookAdded = bookRepository.save(bookMapper.toEntity(bookRequestDto));
 
-        return BookMapper.toDto((bookAdded));
-    }    
+        return bookMapper.toDto((bookAdded));
+    }
 
     @Transactional
     public BookResponseDto updateBook(Long id, BookRequestDto bookRequestDto) {
@@ -67,24 +67,19 @@ public class BookService {
             throw new IllegalArgumentException("Book ID cannot be null");
         }
 
-        Book oldBook = bookRepository.findById(id).orElseThrow(
-            () -> new BookNotFoundException("Book not found with ID: " + id));
+        Book oldBook = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
 
-        if (bookRepository.existsByTitleAndIdNot(bookRequestDto.getTitle(),
-            id)) {
-            throw new BookAlreadyExistsException("A book with this title "
-                + "already exists: " + bookRequestDto.getTitle());
+        if (bookRepository.existsByTitleAndIdNot(bookRequestDto.getTitle(), id)) {
+            throw new BookAlreadyExistsException(
+                    "A book with this title " + "already exists: " + bookRequestDto.getTitle());
         }
 
-        oldBook.setTitle(bookRequestDto.getTitle());
-        oldBook.setAuthor(bookRequestDto.getAuthor());
-        oldBook.setIsbn(bookRequestDto.getIsbn());
-        oldBook.setQuantity(bookRequestDto.getQuantity());
-        oldBook.setIsAvailable(bookRequestDto.getIsAvailable());
+        bookMapper.updateEntityFromDto(bookRequestDto, oldBook);
 
         Book updatedBook = bookRepository.save(oldBook);
 
-        return BookMapper.toDto(updatedBook);
+        return bookMapper.toDto(updatedBook);
     }
 
     public void deleteBook(Long id) {
@@ -93,10 +88,10 @@ public class BookService {
             throw new IllegalArgumentException("Book ID cannot be null");
         }
 
-        if (!bookRepository.existsById(id)) {
-            throw new BookNotFoundException("Book not foind with ID: " + id);
-        }
-
-        bookRepository.deleteById(id);
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
+        book.setDeleted(true);
+        book.setIsAvailable(false);
+        bookRepository.save(book);
     }
 }

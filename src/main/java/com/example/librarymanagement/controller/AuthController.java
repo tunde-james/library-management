@@ -1,5 +1,7 @@
 package com.example.librarymanagement.controller;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -8,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.validation.Valid;
 
 import com.example.librarymanagement.dto.user.LoginRequestDto;
 import com.example.librarymanagement.dto.user.LoginResponseDto;
@@ -29,19 +29,16 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> registerUser(
-        @Valid @RequestBody RegisterRequestDto registerRequestDto) {
+            @Valid @RequestBody RegisterRequestDto registerRequestDto) {
 
-        RegisterResponseDto registerResponseDto =
-            authService.registerUser(registerRequestDto);
+        RegisterResponseDto registerResponseDto = authService.registerUser(registerRequestDto);
 
-        return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(registerResponseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponseDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
-        @Valid @RequestBody LoginRequestDto loginRequestDto) {
+            @Valid @RequestBody LoginRequestDto loginRequestDto) {
 
         LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
 
@@ -49,16 +46,13 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(
-        @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
 
         try {
             authService.logout(authHeader);
             return ResponseEntity.ok("Logged out successfully");
         } catch (BadCredentialsException ex) {
-            return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
         }
 
 

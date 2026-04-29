@@ -1,45 +1,24 @@
 package com.example.librarymanagement.mapper;
 
-import org.springframework.lang.NonNull;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.factory.Mappers;
 
 import com.example.librarymanagement.dto.book.BookRequestDto;
 import com.example.librarymanagement.dto.book.BookResponseDto;
 import com.example.librarymanagement.entity.Book;
 
-public class BookMapper {
+@Mapper(componentModel = "spring")
+public interface BookMapper {
 
-    public @NonNull static BookResponseDto toDto(Book book) {
+    BookMapper INSTANCE = Mappers.getMapper(BookMapper.class);
 
-        if (book == null) {
-            throw new IllegalArgumentException("Book cannot be null");
-        }
+    BookResponseDto toDto(Book book);
 
-        BookResponseDto bookDto = new BookResponseDto();
+    Book toEntity(BookRequestDto bookRequestDto);
 
-        bookDto.setId(book.getId());
-        bookDto.setTitle(book.getTitle());
-        bookDto.setAuthor(book.getAuthor());
-        bookDto.setIsbn(book.getIsbn());
-        bookDto.setQuantity(book.getQuantity());
-        bookDto.setIsAvailable(book.getIsAvailable());
-
-        return bookDto;
-    }
-
-    public static @NonNull Book toEntity(BookRequestDto bookRequestDto) {
-
-        if (bookRequestDto == null) {
-            throw new IllegalArgumentException("BookRequestDto cannot be null");
-        }
-
-        Book book = new Book();
-
-        book.setTitle(bookRequestDto.getTitle());
-        book.setAuthor(bookRequestDto.getAuthor());
-        book.setIsbn(bookRequestDto.getIsbn());
-        book.setQuantity(bookRequestDto.getQuantity());
-        book.setIsAvailable(bookRequestDto.getIsAvailable());
-
-        return book;
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromDto(BookRequestDto dto, @MappingTarget Book book);
 }

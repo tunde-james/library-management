@@ -31,8 +31,7 @@ public class JwtService {
         return extractClaim(jwtToken, Claims::getSubject);
     }
 
-    private <T> T extractClaim(String jwtToken,
-        Function<Claims, T> claimResolver) {
+    private <T> T extractClaim(String jwtToken, Function<Claims, T> claimResolver) {
 
         final Claims claims = extractAllClaims(jwtToken);
 
@@ -41,19 +40,13 @@ public class JwtService {
 
     private Claims extractAllClaims(String jwtToken) {
 
-        return Jwts
-            .parser()
-            .verifyWith(getSignInKey())
-            .build()
-            .parseSignedClaims(jwtToken)
-            .getPayload();
+        return Jwts.parser().verifyWith(getSignInKey()).build().parseSignedClaims(jwtToken)
+                .getPayload();
     }
 
-    public SecretKey getSignInKey() {
+    private SecretKey getSignInKey() {
 
-        return Keys
-            .hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -61,26 +54,20 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    public String generateToken(Map<String, Object> extractClaims,
-        UserDetails userDetails) {
+    public String generateToken(Map<String, Object> extractClaims, UserDetails userDetails) {
 
-        return Jwts
-            .builder()
-            .claims(extractClaims)
-            .subject(userDetails.getUsername())
-            .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis()
-                + jwtProperties.getExpiration().toMillis()))
-            .signWith(getSignInKey())
-            .compact();
+        return Jwts.builder().claims(extractClaims).subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(
+                        System.currentTimeMillis() + jwtProperties.getExpiration().toMillis()))
+                .signWith(getSignInKey()).compact();
     }
 
     public boolean isTokenValid(String jwtToken, UserDetails userDetails) {
 
         final String username = extractUsername(jwtToken);
 
-        return (userDetails.getUsername().equals(username)
-            && !isTokenExpired(jwtToken));
+        return (userDetails.getUsername().equals(username) && !isTokenExpired(jwtToken));
     }
 
     private boolean isTokenExpired(String jwtToken) {

@@ -1,5 +1,6 @@
 package com.example.librarymanagement.service;
 
+import java.time.Instant;
 import java.util.Set;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,6 +29,9 @@ import com.example.librarymanagement.security.UserPrincipal;
 @Service
 public class AuthService {
 
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static long LOCK_DURATION_MINUTES = 30;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -35,11 +39,10 @@ public class AuthService {
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenBlacklistService tokenBlacklistService;
 
-    public AuthService(UserRepository userRepository,
-        PasswordEncoder passwordEncoder,
-        AuthenticationManager authenticationManager, JwtService jwtService,
-        CustomUserDetailsService customUserDetailsService,
-        TokenBlacklistService tokenBlacklistService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager, JwtService jwtService,
+            CustomUserDetailsService customUserDetailsService,
+            TokenBlacklistService tokenBlacklistService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -50,8 +53,7 @@ public class AuthService {
     }
 
     @Transactional
-    public RegisterResponseDto registerUser(
-        RegisterRequestDto registerRequestDto) {
+    public RegisterResponseDto registerUser(RegisterRequestDto registerRequestDto) {
 
         User savedUser = createUserWithRole(registerRequestDto, "ROLE_USER");
 
@@ -72,12 +74,21 @@ public class AuthService {
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
 
-        authenticationManager
-            .authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequestDto.getUsername(), loginRequestDto.getPassword()));
+        unlockIfExpired(loginRequestDto.getUsername());
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginRequestDto.getUsername(), loginRequestDto.getPassword()));
+
+        } catch (BadCredentialsException ex) {
+            handleFailedLogin(loginRequestDto.getUsername());
+            throw ex;
+        }
+
+        handleSuccessfulLogin(loginRequestDto.getUsername());
 
         UserPrincipal userPrincipal = (UserPrincipal) customUserDetailsService
-            .loadUserByUsername(loginRequestDto.getUsername());
+                .loadUserByUsername(loginRequestDto.getUsername());
 
         String token = jwtService.generateToken(userPrincipal);
 
@@ -109,13 +120,12 @@ public class AuthService {
 
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UsernameAlreadyExistsException(
-                "A user with this username already exists: "
-                    + request.getUsername());
+                    "A user with this username already exists: " + request.getUsername());
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException(
-                "A user with this email already exists: " + request.getEmail());
+                    "A user with this email already exists: " + request.getEmail());
         }
 
         User user = UserMapper.toEntity(request);
@@ -127,19 +137,59 @@ public class AuthService {
         } catch (DataIntegrityViolationException ex) {
             if (userRepository.existsByUsername(request.getUsername())) {
                 throw new UsernameAlreadyExistsException(
-                    "A user with this username already exists: "
-                        + request.getUsername());
+                        "A user with this username already exists: " + request.getUsername());
             }
 
             if (userRepository.existsByEmail(request.getEmail())) {
                 throw new EmailAlreadyExistsException(
-                    "A user with this email already exists: "
-                        + request.getEmail());
+                        "A user with this email already exists: " + request.getEmail());
             }
 
             throw new DataIntegrityViolationException(
-                "Registration failed due to a conflict: " + ex.getMessage());
+                    "Registration failed due to a conflict: " + ex.getMessage());
         }
+    }
+
+    @Transactional
+    public void handleFailedLogin(String username) {
+
+        userRepository.findByUsername(username).ifPresent(user -> {
+            int attempts = user.getFailedLoginAttempts() + 1;
+            user.setFailedLoginAttempts(attempts);
+
+            if (attempts >= MAX_FAILED_ATTEMPTS) {
+                user.setAccountNonLocked(false);
+                user.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_MINUTES * 60));
+            }
+
+            userRepository.save(user);
+        });
+    }
+
+    @Transactional
+    public void handleSuccessfulLogin(String username) {
+
+        userRepository.findByUsername(username).ifPresent(user -> {
+            user.setFailedLoginAttempts(0);
+            user.setAccountNonLocked(true);
+            user.setLockedUntil(null);
+            userRepository.save(user);
+        });
+    }
+
+    @Transactional
+    public void unlockIfExpired(String username) {
+
+        userRepository.findByUsername(username).ifPresent(user -> {
+            if (!user.isAccountNonLocked() && user.getLockedUntil() != null
+                    && Instant.now().isAfter(user.getLockedUntil())) {
+
+                user.setAccountNonLocked(true);
+                user.setFailedLoginAttempts(0);
+                user.setLockedUntil(null);
+                userRepository.save(user);
+            }
+        });
     }
 
 }
