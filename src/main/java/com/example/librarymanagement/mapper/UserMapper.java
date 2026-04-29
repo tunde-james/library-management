@@ -1,6 +1,7 @@
 package com.example.librarymanagement.mapper;
 
 import org.springframework.lang.NonNull;
+
 import com.example.librarymanagement.dto.user.AdminResponseDto;
 import com.example.librarymanagement.dto.user.LoginResponseDto;
 import com.example.librarymanagement.dto.user.RegisterRequestDto;
@@ -33,8 +34,8 @@ public class UserMapper {
             throw new IllegalArgumentException("Token cannot be null");
         }
 
-        return RegisterResponseDto.builder().token(token).username(user.getUsername()).email(
-                user.getEmail()).roles(user.getRoles()).build();
+        return RegisterResponseDto.builder().token(token).username(user.getUsername())
+                .email(user.getEmail()).roles(user.getRoles()).build();
     }
 
     public static @NonNull AdminResponseDto toAdminResponse(User user) {
@@ -43,8 +44,8 @@ public class UserMapper {
             throw new IllegalArgumentException("User cannot be null");
         }
 
-        return AdminResponseDto.builder().id(user.getId()).username(user.getUsername()).email(
-                user.getEmail()).roles(user.getRoles()).build();
+        return AdminResponseDto.builder().id(user.getId()).username(user.getUsername())
+                .email(user.getEmail()).roles(user.getRoles()).build();
     }
 
     public static @NonNull LoginResponseDto toLoginResponse(User user, String token) {
@@ -57,7 +58,7 @@ public class UserMapper {
             throw new IllegalArgumentException("Token cannot be null");
         }
 
-        return LoginResponseDto.builder().token(token).username(user.getUsername()).roles(
-                user.getRoles()).build();
+        return LoginResponseDto.builder().token(token).username(user.getUsername())
+                .roles(user.getRoles()).build();
     }
 }
