@@ -13,4 +13,8 @@ public class BookLoanResponseDto {
     private Boolean isReturned;
     private Long userId;
     private Long bookId;
+    private boolean overdue;
+    private long daysOverdue;
+    private double lateFee;
+    private String currency;
 }

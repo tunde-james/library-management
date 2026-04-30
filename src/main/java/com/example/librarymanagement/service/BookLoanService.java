@@ -27,6 +27,8 @@ import com.example.librarymanagement.repository.UserRepository;
 @Service
 public class BookLoanService {
 
+    private static final int MAX_BOOKS_PER_USER = 5;
+
     private final BookLoanRepository bookLoanRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
@@ -46,7 +48,17 @@ public class BookLoanService {
         User user = userRepository.findById(validUserId).orElseThrow(
                 () -> new UserNotFoundException("User not found with ID: " + validUserId));
 
+        long activeLoans = bookLoanRepository.countByUserIdAndIsReturnedFalse(user.getId());
+
         List<Long> sortedBookIds = request.getBookIds().stream().sorted().toList();
+
+        int requestedBooks = sortedBookIds.size();
+
+        if (activeLoans + requestedBooks > MAX_BOOKS_PER_USER) {
+            throw new IllegalArgumentException(
+                    "User has " + activeLoans + " active loan(s). " + "Maximum allowed is "
+                            + MAX_BOOKS_PER_USER + ". Requested: " + requestedBooks);
+        }
 
         List<BookLoanResponseDto> issuedLoans = new ArrayList<>();
 

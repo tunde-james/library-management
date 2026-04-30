@@ -174,5 +174,18 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
 
+        @ExceptionHandler(IllegalStateException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex,
+                        HttpServletRequest request) {
+
+                log.warn("Illegal state: {}", ex.getMessage());
+
+                ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.CONFLICT.value(),
+                                "Conflict", ex.getMessage(), request.getRequestURI());
+
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
+
+
 
 }
