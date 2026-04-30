@@ -18,4 +18,6 @@ public interface BookLoanRepository extends JpaRepository<BookLoans, Long> {
     Optional<BookLoans> findByIdForUpdate(@Param("id") Long id);
 
     long countByUserIdAndIsReturnedFalse(Long userId);
+
+    long countByBookIdAndIsReturnedFalse(Long bookId);
 }

@@ -94,7 +94,7 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
 
-        long activeLoans = bookLoanRepository.countByUserIdAndIsReturnedFalse(id);
+        long activeLoans = bookLoanRepository.countByBookIdAndIsReturnedFalse(id);
 
         if (activeLoans > 0) {
             throw new IllegalStateException(
