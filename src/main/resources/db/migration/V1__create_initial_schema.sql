@@ -1,20 +1,21 @@
 -- V1__create_initial_schema.sql
 -- Initial database schema for Library Management System
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS user_roles (
+CREATE TABLE user_roles (
     user_id BIGINT NOT NULL,
-    roles VARCHAR(255),
+    roles VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id, roles),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS books (
+CREATE TABLE books (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     author VARCHAR(150) NOT NULL,
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS books (
     is_available BOOLEAN NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS book_loans (
+CREATE TABLE book_loans (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     issue_date DATE NOT NULL,
     due_date DATE NOT NULL,

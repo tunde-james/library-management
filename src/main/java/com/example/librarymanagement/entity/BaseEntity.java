@@ -39,5 +39,5 @@ public abstract class BaseEntity {
     private Instant updatedAt;
 
     @Column(nullable = false)
-    private boolean deleted = true;
+    private boolean deleted = false;
 }

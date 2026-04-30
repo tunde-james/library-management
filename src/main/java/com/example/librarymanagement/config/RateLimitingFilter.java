@@ -2,8 +2,6 @@ package com.example.librarymanagement.config;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 
@@ -24,11 +24,13 @@ import com.example.librarymanagement.exception.ErrorResponse;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> buckets;
     private final ObjectMapper objectMapper;
 
     public RateLimitingFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+        this.buckets = Caffeine.newBuilder().maximumSize(10_000)
+                .expireAfterAccess(Duration.ofMinutes(10)).build();
     }
 
     @Override
@@ -42,8 +44,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             return;
         }
 
-        String clientIp = getClientIp(request);
-        Bucket bucket = buckets.computeIfAbsent(clientIp, k -> createBucket());
+        String clientIp = request.getRemoteAddr();
+        Bucket bucket = buckets.get(clientIp, k -> createBucket());
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
@@ -65,12 +67,4 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
-    }
 }

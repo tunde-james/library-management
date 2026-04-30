@@ -24,7 +24,7 @@ public class JwtProperties {
     @PostConstruct
     public void validate() {
 
-        Assert.hasText(secret, "secret \"jwt.secret must be set and cannot be blank");
+        Assert.hasText(secret, "jwt.secret must be set and cannot be blank");
         Assert.isTrue(secret.getBytes(StandardCharsets.UTF_8).length >= 32,
                 "jwt.secret must be at least 32 bytes (256 bits) to prevent WeakKeyException");
         Assert.notNull(expiration,
