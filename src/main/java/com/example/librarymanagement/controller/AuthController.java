@@ -50,18 +50,11 @@ public class AuthController {
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || authHeader.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing Authorization Header");
+            throw new BadCredentialsException("Missing Authorization Header");
         }
 
-        try {
-            authService.logout(authHeader);
-            return ResponseEntity.ok("Logged out successfully");
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
-        }
-
-
+        authService.logout(authHeader);
+        return ResponseEntity.ok("Logged out successfully");
     }
 
 }

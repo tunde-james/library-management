@@ -18,26 +18,30 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(lombok.AccessLevel.NONE)
     private Long id;
 
     @Version
+    @Setter(lombok.AccessLevel.NONE)
     private Integer version;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
+    @Setter(lombok.AccessLevel.NONE)
     private Instant updatedAt;
 
     @Column(nullable = false)
+    @Setter
     private boolean deleted = false;
 }
