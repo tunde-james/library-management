@@ -1,6 +1,7 @@
 package com.example.librarymanagement.mapper;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.lang.NonNull;
 
@@ -11,6 +12,8 @@ import com.example.librarymanagement.entity.BookLoans;
 import com.example.librarymanagement.entity.User;
 
 public class BookLoanMapper {
+
+    private static final double DAILY_LATE_FEE = 200;
 
     public static @NonNull BookLoanResponseDto toDto(BookLoans bookLoan) {
 
@@ -28,11 +31,27 @@ public class BookLoanMapper {
         dto.setUserId(bookLoan.getUser().getId());
         dto.setBookId(bookLoan.getBook().getId());
 
+        LocalDate checkDate =
+                bookLoan.getReturnDate() != null ? bookLoan.getReturnDate() : LocalDate.now();
+
+        if (checkDate.isAfter(bookLoan.getDueDate())) {
+            long daysLate = ChronoUnit.DAYS.between(bookLoan.getDueDate(), checkDate);
+
+            dto.setOverdue(true);
+            dto.setDaysOverdue(daysLate);
+            dto.setLateFee(daysLate * DAILY_LATE_FEE);
+        } else {
+            dto.setOverdue(false);
+            dto.setDaysOverdue(0);
+            dto.setLateFee(0.0);
+        }
+
+        dto.setCurrency("NGN");
+
         return dto;
     }
 
-    public static @NonNull BookLoans toEntity(BookLoanRequestDto request,
-        User user, Book book) {
+    public static @NonNull BookLoans toEntity(BookLoanRequestDto request, User user, Book book) {
 
         if (request == null)
             throw new IllegalArgumentException("Request cannot be null");

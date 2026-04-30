@@ -1,7 +1,7 @@
 package com.example.librarymanagement.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +11,7 @@ import com.example.librarymanagement.entity.Book;
 import com.example.librarymanagement.exception.BookAlreadyExistsException;
 import com.example.librarymanagement.exception.BookNotFoundException;
 import com.example.librarymanagement.mapper.BookMapper;
+import com.example.librarymanagement.repository.BookLoanRepository;
 import com.example.librarymanagement.repository.BookRepository;
 
 @Service
@@ -18,20 +19,22 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final BookLoanRepository bookLoanRepository;
 
-    public BookService(BookRepository bookRepository, BookMapper bookMapper) {
+    public BookService(BookRepository bookRepository, BookMapper bookMapper,
+            BookLoanRepository bookLoanRepository) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
+        this.bookLoanRepository = bookLoanRepository;
     }
 
-    public List<BookResponseDto> getAllBooks() {
+    public Page<BookResponseDto> getAllBooks(Pageable pageable) {
 
-        List<Book> books = bookRepository.findAll();
+        Page<Book> books = bookRepository.findAll(pageable);
 
-        List<BookResponseDto> bookResponseDtos =
-                books.stream().map(book -> bookMapper.toDto(book)).toList();
+        return books.map(book -> bookMapper.toDto(book));
 
-        return bookResponseDtos;
+
     }
 
     public BookResponseDto getBookById(Long id) {
@@ -90,6 +93,15 @@ public class BookService {
 
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
+
+        long activeLoans = bookLoanRepository.countByBookIdAndIsReturnedFalse(id);
+
+        if (activeLoans > 0) {
+            throw new IllegalStateException(
+                    "Cannot delete book '" + book.getTitle() + "' - it has " + activeLoans
+                            + " active loan(s). " + "All copies must be returned first.");
+        }
+
         book.setDeleted(true);
         book.setIsAvailable(false);
         bookRepository.save(book);
