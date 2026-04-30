@@ -1,5 +1,6 @@
 package com.example.librarymanagement.security;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -20,11 +21,8 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
-        return user
-            .getRoles()
-            .stream()
-            .map(SimpleGrantedAuthority::new)
-            .collect(Collectors.toList());
+        return user.getRoles().stream().map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -48,7 +46,15 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isAccountNonLocked() {
 
-        return true;
+        if (user.isAccountNonLocked()) {
+            return true;
+        }
+
+        if (user.getLockedUntil() != null && Instant.now().isAfter(user.getLockedUntil())) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
 
-        return true;
+        return user.isEnabled();
     }
 
     public User getUser() {
